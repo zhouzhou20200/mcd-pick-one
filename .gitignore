@@ -1,0 +1,23 @@
+# ---- WorkBuddy 本地数据（含项目记忆，不入库） ----
+.workbuddy/
+
+# ---- 本地配置：含真实凭证或个人数据，绝不入库 ----
+mcp.json
+profile.json
+.env
+.env.*
+
+# ---- Python ----
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+env/
+
+# ---- 编辑器 / 系统 ----
+.vscode/
+.idea/
+*.swp
+.DS_Store
+Thumbs.db

@@ -1,0 +1,25 @@
+{
+  "_comment": "mcd-pick-one 口味档案模板。复制为 profile.json 后自行修改；taste 里只标你吃过的，其余走 default_taste。",
+  "budget": 25.0,
+  "default_taste": 3.0,
+  "banned": [
+    "花生",
+    "香菜"
+  ],
+  "dislike": [
+    "洋葱"
+  ],
+  "taste": {
+    "双层吉士汉堡": 4.5,
+    "麦辣鸡腿堡": 4.0,
+    "巨无霸": 5.0,
+    "麦香鱼": 3.0,
+    "中薯条": 5.0,
+    "麦乐鸡": 4.0,
+    "可口可乐": 3.5
+  },
+  "prefer": {
+    "main": "beef",
+    "drink": "none"
+  }
+}

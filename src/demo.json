@@ -1,0 +1,70 @@
+{
+  "_comment": "mcd-pick-one 示例输入。price 为 calculate-price 得出的实付价（已含券）；taste 为菜品口味分（未标则用档案默认分）。",
+  "profile": {
+    "budget": 25.0,
+    "default_taste": 3.0,
+    "banned": ["花生"],
+    "taste": {
+      "双层吉士汉堡": 4.5,
+      "中薯条": 5.0,
+      "麦辣鸡腿堡": 4.0,
+      "巨无霸": 5.0,
+      "麦香鱼": 3.0,
+      "麦乐鸡": 4.0
+    }
+  },
+  "candidates": [
+    {
+      "name": "双层吉士汉堡套餐",
+      "price": 21.0,
+      "items": [
+        { "name": "双层吉士汉堡", "role": "main" },
+        { "name": "中薯条", "role": "side" }
+      ],
+      "tags": ["beef", "cheese"]
+    },
+    {
+      "name": "麦辣鸡腿堡套餐",
+      "price": 24.0,
+      "items": [
+        { "name": "麦辣鸡腿堡", "role": "main" },
+        { "name": "中薯条", "role": "side" }
+      ],
+      "tags": ["chicken", "spicy"]
+    },
+    {
+      "name": "巨无霸套餐",
+      "price": 28.5,
+      "items": [
+        { "name": "巨无霸", "role": "main" },
+        { "name": "中薯条", "role": "side" }
+      ],
+      "tags": ["beef"]
+    },
+    {
+      "name": "麦香鱼套餐",
+      "price": 26.0,
+      "items": [
+        { "name": "麦香鱼", "role": "main" },
+        { "name": "麦乐鸡", "role": "side" }
+      ],
+      "tags": ["fish"]
+    },
+    {
+      "name": "单点巨无霸",
+      "price": 25.5,
+      "items": [
+        { "name": "巨无霸", "role": "main" }
+      ],
+      "tags": ["beef"]
+    },
+    {
+      "name": "花生酱新地",
+      "price": 9.0,
+      "items": [
+        { "name": "花生酱新地", "role": "dessert" }
+      ],
+      "tags": ["peanut", "dessert"]
+    }
+  ]
+}
