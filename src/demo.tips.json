@@ -1,0 +1,21 @@
+{
+  "_note": "数据来源：2026-10-10 麦当劳 MCP 真实调用（query-nearby-stores 的 reservationTimeOptions / campaign-calendar / query-my-coupons）。档期文案原文为「早餐(06:14至10:15)，午餐(10:44至14:15)，下午茶(14:44至16:45)，夜市(17:14至21:45)」，此处拆成 slots。券包实测为「暂无可用优惠券」，故 coupons 为空数组——不填充示例券，避免与真实记录混淆。",
+  "_note2": "注意「超值9.9元早餐两件套」虽标注为当日活动，但原文写明「周一至周五」——2026-10-10 是周六，属门槛①「现在就能做」不成立的情形。",
+  "store": {
+    "name": "天津站后广场餐厅",
+    "slots": [
+      { "name": "早餐", "start": "06:14", "end": "10:15" },
+      { "name": "午餐", "start": "10:44", "end": "14:15" },
+      { "name": "下午茶", "start": "14:44", "end": "16:45" },
+      { "name": "夜市", "start": "17:14", "end": "21:45" }
+    ]
+  },
+  "campaigns": [
+    { "title": "参与麦金喜抽奖，得[积分霸王餐]", "date": "2026-10-10", "today_only": true },
+    { "title": "超值9.9元早餐两件套", "date": "2026-10-10", "today_only": false },
+    { "title": "学生专属！49元150天麦金学期卡", "date": "2026-10-18", "today_only": false },
+    { "title": "韩式风味蘸酱上新", "date": "2026-10-10", "today_only": false },
+    { "title": "早餐爆款回归，快来pick你的厚松饼堡", "date": "2026-10-10", "today_only": false }
+  ],
+  "coupons": []
+}
