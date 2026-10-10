@@ -35,7 +35,10 @@ from typing import Any, Dict, List
 
 DEFAULT_BUDGET = 25.0
 MAIN_ROLES = {"main"}
-SIDE_ROLES = {"side", "drink", "dessert"}
+# 配餐必须是「有实物的」：薯条 / 薯饼 / 鸡块 / 派 / 香肠……
+# 饮料与甜品不计入配餐——否则一瓶 8.5 元的矿泉水就能顶一顿饭，「吃饱」检查形同虚设。
+# 饮料是单独询问的可选附加项：计入预算，但不构成饱腹结构。
+SIDE_ROLES = {"side"}
 
 
 def load_json(path: str) -> Dict[str, Any]:
@@ -171,7 +174,10 @@ def render(result: Dict[str, Any]) -> str:
 
     lines.append("【今天就吃这个】")
     lines.append("  %s" % pick["name"])
-    lines.append("  构成：%s" % " + ".join(pick["items"]))
+    composed = " + ".join(pick["items"])
+    # 菜名本身就是单品罗列时（如「A + B」），不再重复打印「构成」一行
+    if composed and composed != pick["name"]:
+        lines.append("  构成：%s" % composed)
     if fee:
         lines.append("  实付：%.2f 元（含配送费 %.2f，预算 %.2f）" % (pick["actual_price"], fee, budget))
     else:

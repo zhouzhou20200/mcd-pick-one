@@ -1,0 +1,102 @@
+{
+  "_comment": "真实数据快照：2026-10-10 10:04 由麦当劳 MCP 实调取得（门店 1980320 天津站后广场餐厅，到店自取）。price = calculate-price 核出的实付价（分→元）；taste 为用户口味分，非 MCP 数据。",
+  "_source": {
+    "captured_at": "2026-10-10T10:04:38+08:00",
+    "store_code": "1980320",
+    "store_name": "麦当劳天津站后广场餐厅",
+    "order_type": 1,
+    "be_type": 1,
+    "menu_segment": "早餐时段（门店档期 06:14-10:15）",
+    "coupons_available_at_store": 0,
+    "coupons_in_wallet": 0,
+    "verified_by": "calculate-price traceId=4cd44cbae85dae2406ae7dafcf69a194",
+    "detail": "docs/real-call-log.md"
+  },
+  "profile": {
+    "budget": 25.0,
+    "default_taste": 3.0,
+    "banned": ["花生"],
+    "taste": {
+      "吉士蛋麦满分": 4.0,
+      "大脆鸡扒麦满分": 4.5,
+      "火腿扒麦满分": 3.5,
+      "猪柳蛋麦满分": 4.0,
+      "脆薯饼": 5.0,
+      "脆香油条": 4.0
+    }
+  },
+  "candidates": [
+    {
+      "name": "吉士蛋麦满分 + 脆薯饼",
+      "price": 19.5,
+      "items": [
+        { "name": "吉士蛋麦满分", "role": "main" },
+        { "name": "脆薯饼", "role": "side" }
+      ],
+      "tags": ["breakfast", "cheese", "egg"]
+    },
+    {
+      "name": "火腿扒麦满分 + 脆薯饼",
+      "price": 20.5,
+      "items": [
+        { "name": "火腿扒麦满分", "role": "main" },
+        { "name": "脆薯饼", "role": "side" }
+      ],
+      "tags": ["breakfast", "pork"]
+    },
+    {
+      "name": "大脆鸡扒麦满分 + 脆薯饼",
+      "price": 21.5,
+      "items": [
+        { "name": "大脆鸡扒麦满分", "role": "main" },
+        { "name": "脆薯饼", "role": "side" }
+      ],
+      "tags": ["breakfast", "chicken"]
+    },
+    {
+      "name": "猪柳麦满分 + 脆薯饼",
+      "price": 24.0,
+      "items": [
+        { "name": "猪柳麦满分", "role": "main" },
+        { "name": "脆薯饼", "role": "side" }
+      ],
+      "tags": ["breakfast", "pork"]
+    },
+    {
+      "name": "吉士蛋麦满分 + 脆香油条",
+      "price": 19.5,
+      "items": [
+        { "name": "吉士蛋麦满分", "role": "main" },
+        { "name": "脆香油条", "role": "side" }
+      ],
+      "tags": ["breakfast", "cheese", "egg"]
+    },
+    {
+      "name": "芝芝火腿扒堡 + 德式图林根香肠",
+      "price": 23.5,
+      "items": [
+        { "name": "芝芝火腿扒堡", "role": "main" },
+        { "name": "德式图林根香肠", "role": "side" }
+      ],
+      "tags": ["breakfast", "pork", "cheese"]
+    },
+    {
+      "name": "猪柳蛋麦满分 + 脆薯饼",
+      "price": 28.0,
+      "items": [
+        { "name": "猪柳蛋麦满分", "role": "main" },
+        { "name": "脆薯饼", "role": "side" }
+      ],
+      "tags": ["breakfast", "pork", "egg"]
+    },
+    {
+      "name": "双层猪柳蛋麦满分 + 脆薯饼",
+      "price": 31.0,
+      "items": [
+        { "name": "双层猪柳蛋麦满分", "role": "main" },
+        { "name": "脆薯饼", "role": "side" }
+      ],
+      "tags": ["breakfast", "pork", "egg"]
+    }
+  ]
+}

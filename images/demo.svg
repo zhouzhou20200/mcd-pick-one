@@ -1,7 +1,7 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="900" height="330" viewBox="0 0 900 330" role="img" aria-label="mcd-pick-one 决策引擎真实运行输出">
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="360" viewBox="0 0 900 360" role="img" aria-label="mcd-pick-one 决策引擎基于真实 MCP 数据的运行输出">
   <defs>
     <clipPath id="card">
-      <rect x="0" y="0" width="900" height="330" rx="12" ry="12"/>
+      <rect x="0" y="0" width="900" height="360" rx="12" ry="12"/>
     </clipPath>
     <style>
       .mono { font-family: "JetBrains Mono", "Cascadia Mono", Consolas, "Microsoft YaHei", "PingFang SC", monospace; }
@@ -11,11 +11,12 @@
       .name { fill: #ffffff; font-weight: 700; }
       .cash { fill: #7ee787; font-weight: 700; }
       .cmd  { fill: #7ee787; }
+      .note { fill: #6e7681; }
     </style>
   </defs>
 
   <g clip-path="url(#card)">
-    <rect x="0" y="0" width="900" height="330" fill="#0d1117"/>
+    <rect x="0" y="0" width="900" height="360" fill="#0d1117"/>
     <rect x="0" y="0" width="900" height="40" fill="#161b22"/>
     <line x1="0" y1="40" x2="900" y2="40" stroke="#30363d" stroke-width="1"/>
     <circle cx="26" cy="20" r="6" fill="#ff5f57"/>
@@ -23,23 +24,25 @@
     <circle cx="66" cy="20" r="6" fill="#28c840"/>
     <text class="mono" x="450" y="25" fill="#8b949e" font-size="13" text-anchor="middle">mcd-pick-one · 决策引擎真实输出</text>
 
-    <text class="mono cmd" x="26" y="74" font-size="14">$</text>
-    <text class="mono body" x="46" y="74" font-size="14">python src/pick_one.py --input src/demo.json</text>
+    <text class="mono cmd" x="26" y="76" font-size="14">$</text>
+    <text class="mono body" x="46" y="76" font-size="14">python src/pick_one.py --input src/demo.real.json</text>
 
-    <text class="mono head" x="26" y="112" font-size="15">【今天就吃这个】</text>
+    <text class="mono note" x="26" y="102" font-size="12"># 数据源：2026-10-10 麦当劳 MCP 真机联调 · 门店 1980320 天津站后广场餐厅 · 当日 0 张可用券</text>
 
-    <text class="mono name" x="26" y="148" font-size="15">双层吉士汉堡套餐</text>
-    <text class="mono dim" x="26" y="176" font-size="13">构成：双层吉士汉堡 + 中薯条</text>
+    <text class="mono head" x="26" y="148" font-size="15">【今天就吃这个】</text>
 
-    <text class="mono body" x="26" y="206" font-size="14">实付：</text>
-    <text class="mono cash" x="74" y="206" font-size="15">21.00 元</text>
-    <text class="mono dim" x="162" y="206" font-size="13">（预算 25.00，自取无配送费）</text>
+    <text class="mono name" x="26" y="184" font-size="15">吉士蛋麦满分 + 脆薯饼</text>
 
-    <text class="mono dim" x="26" y="234" font-size="13">满足度：4.8 / 5　性价比得分：0.2262</text>
+    <text class="mono body" x="26" y="214" font-size="14">实付：</text>
+    <text class="mono cash" x="74" y="214" font-size="15">19.50 元</text>
+    <text class="mono dim" x="162" y="214" font-size="13">（预算 25.00，自取无配送费）</text>
 
-    <text class="mono dim" x="26" y="270" font-size="13">备选（追问才展示）：</text>
-    <text class="mono dim" x="26" y="296" font-size="13">- 麦辣鸡腿堡套餐（实付 24.00 元，得分 0.1875）</text>
+    <text class="mono dim" x="26" y="242" font-size="13">满足度：4.5 / 5　性价比得分：0.2308</text>
+
+    <text class="mono dim" x="26" y="280" font-size="13">备选（追问才展示）：</text>
+    <text class="mono dim" x="26" y="306" font-size="13">- 大脆鸡扒麦满分 + 脆薯饼（实付 21.50 元，得分 0.2209）</text>
+    <text class="mono dim" x="26" y="332" font-size="13">- 火腿扒麦满分 + 脆薯饼（实付 20.50 元，得分 0.2073）</text>
   </g>
 
-  <rect x="0.5" y="0.5" width="899" height="329" rx="12" ry="12" fill="none" stroke="#30363d" stroke-width="1"/>
+  <rect x="0.5" y="0.5" width="899" height="359" rx="12" ry="12" fill="none" stroke="#30363d" stroke-width="1"/>
 </svg>
