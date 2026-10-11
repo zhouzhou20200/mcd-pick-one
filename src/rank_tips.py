@@ -20,11 +20,24 @@ mcd-pick-one 顺手提示排序器
 
 **默认是沉默。** 没有合格项时输出空，这是设计的一部分。
 
+渠道差异（三路里只有「档期」是渠道相关的）
+------------------------------------------
+* **数据来源不同**：自取看 `query-nearby-stores` 的 `reservationTimeOptions`；
+  外送看 `delivery-query-stores` 的。同一个门店，两个渠道返回的档期区间**可以不一致**
+  （实测 2026-10-11：门店 1980359 到店午餐档 10:44-14:15，外送午餐档 11:00-14:59）。
+* **预警窗口不同**：自取下楼取餐，30 分钟够用；外送还得留给骑手接单 + 配送，
+  窗口必须更宽。否则会出现「提醒得很及时，但你根本来不及下单」——
+  **提醒了却做不了，比不提醒更糟**，因为它把"决策"又推回给用户。
+* **措辞不同**：自取说"还来得及"，外送说"还能赶在这一档送到"。
+
+活动与券两路不受渠道影响。
+
 用法
 ----
     python rank_tips.py --input demo.tips.json
     python rank_tips.py --input demo.tips.json --now "2026-10-10 15:30"
     python rank_tips.py --input demo.tips.json --all      # 打印全部候选（调试用）
+    python rank_tips.py --input demo.tips.json --channel delivery
     python rank_tips.py --input demo.tips.json --json
 
 仅依赖 Python 标准库。
@@ -41,8 +54,20 @@ from typing import Any, Dict, List, Optional
 # ── 阈值 ────────────────────────────────────────────────────────────────
 # 档期剩余 <= 该分钟数时，视为"即将切换"，构成不可逆事件
 SLOT_ALERT_MINUTES = 30
+# 外送要额外留给骑手接单 + 配送的时间，窗口必须更宽——否则"提醒了但来不及下单"
+SLOT_ALERT_MINUTES_DELIVERY = 45
 # 券剩余 <= 该小时数时，视为"即将过期"
 COUPON_ALERT_HOURS = 48
+
+# 取餐渠道。只作用于「档期」这一路：阈值不同、措辞不同。
+CHANNEL_TAKEOUT = "takeout"
+CHANNEL_DELIVERY = "delivery"
+CHANNELS = (CHANNEL_TAKEOUT, CHANNEL_DELIVERY)
+
+
+def slot_alert_minutes(channel: str) -> int:
+    """外送要求更长的预警窗口。"""
+    return SLOT_ALERT_MINUTES_DELIVERY if channel == CHANNEL_DELIVERY else SLOT_ALERT_MINUTES
 
 # 三类**可能**通过门槛的信息；其余一律不进入候选
 KIND_SLOT = "slot"        # ⏰ 档期即将切换
@@ -104,15 +129,16 @@ def gate_irreversible(item: Dict[str, Any]) -> bool:
 
 
 # ── 候选生成 ────────────────────────────────────────────────────────────
-def collect_candidates(payload: Dict[str, Any], now: datetime) -> tuple:
+def collect_candidates(payload: Dict[str, Any], now: datetime, channel: str) -> tuple:
     """只收三类信息。其余（可领券 / 长期活动 / 新品 / 积分）**根本不生成候选**。
 
     返回 (候选列表, 被排除在候选之外的信息及原因)。
     """
     raw: List[Dict[str, Any]] = []
     excluded: List[Dict[str, str]] = []
+    window = slot_alert_minutes(channel)
 
-    # ① 档期即将切换 —— 数据来源：query-nearby-stores 的 reservationTimeOptions
+    # ① 档期即将切换 —— 自取：query-nearby-stores；外送：delivery-query-stores
     store = payload.get("store") or {}
     store_name = store.get("name") or "本店"
     for slot in store.get("slots") or []:
@@ -123,15 +149,19 @@ def collect_candidates(payload: Dict[str, Any], now: datetime) -> tuple:
         if not (start <= now < end):
             continue  # 当前不在这段档期内
         left = int((end - now).total_seconds() // 60)
-        if 0 <= left <= SLOT_ALERT_MINUTES:
+        if 0 <= left <= window:
             slot_label = ("的%s档" % slot.get("name")) if slot.get("name") else "档"
+            if channel == CHANNEL_DELIVERY:
+                tail = "现在下单还能赶在这一档送到"
+            else:
+                tail = "现在下单还来得及"
             raw.append(
                 {
                     "kind": KIND_SLOT,
                     "deadline": end,
                     "actionable": True,
-                    "text": "%s%s%s %s 结束（还有 %d 分钟），现在下单还来得及。"
-                    % ("⏰ ", store_name, slot_label, end.strftime("%H:%M"), left),
+                    "text": "%s%s%s %s 结束（还有 %d 分钟），%s。"
+                    % ("⏰ ", store_name, slot_label, end.strftime("%H:%M"), left, tail),
                 }
             )
 
@@ -186,9 +216,9 @@ def collect_candidates(payload: Dict[str, Any], now: datetime) -> tuple:
     return raw, excluded
 
 
-def rank(payload: Dict[str, Any], now: datetime) -> Dict[str, Any]:
+def rank(payload: Dict[str, Any], now: datetime, channel: str = CHANNEL_TAKEOUT) -> Dict[str, Any]:
     """过三道门槛 -> 按"不可逆时刻"升序 -> 只留 1 条。"""
-    candidates, excluded = collect_candidates(payload, now)
+    candidates, excluded = collect_candidates(payload, now, channel)
 
     passed: List[Dict[str, Any]] = []
     rejected: List[Dict[str, str]] = []
@@ -207,6 +237,8 @@ def rank(payload: Dict[str, Any], now: datetime) -> Dict[str, Any]:
 
     return {
         "now": now.strftime("%Y-%m-%d %H:%M:%S"),
+        "channel": channel,
+        "slot_alert_minutes": slot_alert_minutes(channel),
         "candidate_count": len(candidates),
         "passed_count": len(passed),
         "excluded": excluded,
@@ -235,6 +267,13 @@ def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description="mcd-pick-one 顺手提示排序器：最多 1 条，默认沉默")
     parser.add_argument("--input", required=True, help="输入 JSON，需含 store / campaigns / coupons")
     parser.add_argument("--now", default=None, help='覆盖当前时间，格式 "YYYY-MM-DD HH:MM"')
+    parser.add_argument(
+        "--channel",
+        choices=CHANNELS,
+        default=CHANNEL_TAKEOUT,
+        help="取餐渠道：takeout 到店自取（默认，档期预警 %d 分钟）/ delivery 麦乐送（%d 分钟）"
+        % (SLOT_ALERT_MINUTES, SLOT_ALERT_MINUTES_DELIVERY),
+    )
     parser.add_argument("--all", action="store_true", help="打印全部候选与判定理由（调试用）")
     parser.add_argument("--json", action="store_true", help="以 JSON 输出原始结果")
     return parser
@@ -258,12 +297,16 @@ def main(argv: Optional[List[str]] = None) -> int:
         print(str(exc), file=sys.stderr)
         return 2
 
-    result = rank(payload, now)
+    result = rank(payload, now, args.channel)
 
     if args.json:
         print(json.dumps(result, ensure_ascii=False, indent=2))
     elif args.all:
         print("当前时间：%s" % result["now"])
+        print(
+            "渠道：%s ｜ 档期预警窗口：%d 分钟"
+            % ("外送" if result["channel"] == CHANNEL_DELIVERY else "到店自取", result["slot_alert_minutes"])
+        )
         print("候选总数：%d ｜ 通过门槛：%d" % (result["candidate_count"], result["passed_count"]))
         print()
         print("【进入候选】")

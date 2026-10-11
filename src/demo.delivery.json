@@ -1,0 +1,119 @@
+{
+  "_comment": "真实数据快照·外送（麦乐送）。2026-10-11 10:36~10:41 由麦当劳 MCP 实调取得。price = calculate-price 核出的**实付总价**（分→元），已含配送费与打包费，故 price_basis=final、estimate_fee 必须为 0。taste 为用户口味分，非 MCP 数据。",
+  "_source": {
+    "captured_at": "2026-10-11T10:41:16+08:00",
+    "store_code": "1980359",
+    "store_name": "麦当劳天津软件学院餐厅",
+    "be_code": "198035902",
+    "order_type": 2,
+    "be_type": 2,
+    "delivery_address_id": "（已脱敏：真实 addressId 不落盘，它绑定用户账号与收货地址）",
+    "menu_segment": "午餐档（外送档期 11:00-14:59），预约时间 2026-10-11 13:00",
+    "fee_breakdown": {
+      "delivery_fee": 6.0,
+      "packing_fee": 1.9,
+      "note": "实测固定为 配送 6.00 + 打包 1.90 = 7.90 元；但**只点饮品时核价不出打包费**，故费用不入库、一律以 calculate-price 为准"
+    },
+    "coupons_available_at_store": 1,
+    "coupons_note": "本店外送可用券仅 1 张：9.9 元中杯冰美式（实测生效，19.00 → 9.90）",
+    "verified_by": "calculate-price traceId 见每条候选的 _trace",
+    "detail": "docs/real-call-log.md"
+  },
+  "price_basis": "final",
+  "profile": {
+    "budget": 25.0,
+    "default_taste": 3.0,
+    "banned": ["花生"],
+    "taste": {
+      "双层脆鸡堡": 4.0,
+      "麦乐鸡5块": 4.5,
+      "中薯条": 4.5,
+      "可口可乐中杯": 3.5,
+      "麦香鸡": 3.5,
+      "吉士汉堡包": 3.5,
+      "汉堡包": 2.5,
+      "脆薯饼": 5.0,
+      "麦咖啡™冰美式中杯": 4.0
+    }
+  },
+  "candidates": [
+    {
+      "name": "大堡口福四件套（双层脆鸡堡）",
+      "price": 42.8,
+      "items": [
+        { "name": "双层脆鸡堡", "role": "main" },
+        { "name": "麦乐鸡5块", "role": "side" },
+        { "name": "中薯条", "role": "side" },
+        { "name": "可口可乐中杯", "role": "drink" }
+      ],
+      "_trace": "a1fda20e585ae3528a72145bfd2c4240",
+      "_note": "商品 34.90（原价 67.50）+ 配送 6.00 + 打包 1.90",
+      "tags": ["combo", "chicken"]
+    },
+    {
+      "name": "吉士汉堡中套餐",
+      "price": 39.9,
+      "items": [
+        { "name": "吉士汉堡包", "role": "main" },
+        { "name": "中薯条", "role": "side" },
+        { "name": "可口可乐中杯", "role": "drink" }
+      ],
+      "_trace": "ec3798fb0cfdb03e6791ae5ff4f9fedb",
+      "_note": "商品 32.00 + 配送 6.00 + 打包 1.90",
+      "tags": ["combo", "beef", "cheese"]
+    },
+    {
+      "name": "麦香鸡 + 脆薯饼",
+      "price": 35.4,
+      "items": [
+        { "name": "麦香鸡", "role": "main" },
+        { "name": "脆薯饼", "role": "side" }
+      ],
+      "_trace": "58dbdf9111aeda593058b863cc0542fa",
+      "_note": "商品 18.00 + 9.50 + 配送 6.00 + 打包 1.90",
+      "tags": ["chicken"]
+    },
+    {
+      "name": "吉士汉堡包 + 脆薯饼",
+      "price": 33.9,
+      "items": [
+        { "name": "吉士汉堡包", "role": "main" },
+        { "name": "脆薯饼", "role": "side" }
+      ],
+      "_trace": "5c08c85d15fa4e17849da8239380812c",
+      "_note": "商品 16.50 + 9.50 + 配送 6.00 + 打包 1.90",
+      "tags": ["beef", "cheese"]
+    },
+    {
+      "name": "汉堡包 + 脆薯饼",
+      "price": 32.4,
+      "items": [
+        { "name": "汉堡包", "role": "main" },
+        { "name": "脆薯饼", "role": "side" }
+      ],
+      "_trace": "e7f2d3f59db8fff6525f992aa2a6870a",
+      "_note": "商品 15.00 + 9.50 + 配送 6.00 + 打包 1.90，是全外送菜单里最便宜的主食+配餐组合",
+      "tags": ["beef"]
+    },
+    {
+      "name": "麦乐鸡(5块)中套餐",
+      "price": 38.4,
+      "items": [
+        { "name": "麦乐鸡5块", "role": "side" },
+        { "name": "中薯条", "role": "side" },
+        { "name": "可口可乐中杯", "role": "drink" }
+      ],
+      "_trace": "3bf5650ad5b8a67352de29ecca4b4272",
+      "_note": "商品 30.50 + 配送 6.00 + 打包 1.90。**故意保留**：官方「选择小食/饮料」轮次里没有主食轮，5 块麦乐鸡不是主食——用来验证「主食+配餐」结构闸门在真实数据上确实拦得住「小食套餐」",
+      "tags": ["combo", "nuggets"]
+    },
+    {
+      "name": "麦咖啡™冰美式中杯（9.9 元券）",
+      "price": 15.9,
+      "items": [{ "name": "麦咖啡™冰美式中杯", "role": "drink" }],
+      "_trace": "219d699de70324431136cfd699bdaa02",
+      "_note": "券后 9.90（原价 19.00，discount 9.10）+ 配送 6.00，**未产生打包费**。故意保留：单杯饮料价低到 15.90、远低于预算，但**饮料不算配餐**，结构闸门必须把它拦下——「便宜」不等于「能吃一顿」",
+      "tags": ["drink", "coupon"]
+    }
+  ]
+}

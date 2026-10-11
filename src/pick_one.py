@@ -10,6 +10,30 @@ mcd-pick-one 决策引擎
 --------
 * 只做 **筛选 + 打分 + 排序**，不做任何写操作（不下单、不领券）
 * 取数由麦当劳 MCP 负责（菜单 / 券 / 算价），决策由本脚本负责
+* **本脚本不感知渠道差异**（菜单两套编码、档期规则、券可用性都属取数层）。
+  唯一与渠道相关的只有「费用」，见下。
+
+费用语义（重要，别搞错）
+------------------------
+`candidates[].price` 的语义被钉死为 **`calculate-price` 返回的实付总价**。
+
+真机联调实测（2026-10-11，门店 1980359）：
+
+* **到店自取** → `price` 只含商品价。返回里**没有**任何附加费字段。
+* **麦乐送**   → `price` **已经含**配送费与打包费：
+  `3240 = 商品 2450 + 配送 600 + 打包 190`
+
+因此本脚本**默认不再叠加任何费用**（`--estimate-fee` 默认 0）。
+
+只有当你的 `price` 其实是**未经核价的菜单价**时，才把输入里的 `price_basis`
+写成 `"menu"`，并用 `--estimate-fee` 传一个附加费估算值。
+
+> ⚠️ **最常见的错法**：外送场景既喂核价实付价、又传 `--estimate-fee 7.9`，
+> 结果把配送费和打包费**算了两遍**（42.80 会变成 50.70）。
+> 想避免这个坑，就用默认的 `price_basis="final"`。
+>
+> 💡 另外，打包费**按商品类型计**：只点饮品的那次核价，打包费字段直接缺席（=0）。
+> 所以任何「写死一个固定费用」的做法在边界场景都是错的——费用只应来自核价。
 
 决策顺序
 --------
@@ -20,7 +44,9 @@ mcd-pick-one 决策引擎
 用法
 ----
     python pick_one.py --input demo.json
-    python pick_one.py --input demo.json --budget 25 --delivery-fee 9
+    python pick_one.py --input demo.real.json                      # 到店自取（默认）
+    python pick_one.py --input demo.delivery.json --channel delivery
+    python pick_one.py --input demo.json --price-basis menu --estimate-fee 7.9
     python pick_one.py --input demo.json --json
 
 仅依赖 Python 标准库。
@@ -31,14 +57,25 @@ from __future__ import annotations
 import argparse
 import json
 import sys
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Tuple
 
 DEFAULT_BUDGET = 25.0
+DEFAULT_ESTIMATE_FEE = 0.0
+
+# 渠道只用于**标注与告警**，不改变决策规则。
+CHANNEL_TAKEOUT = "takeout"
+CHANNEL_DELIVERY = "delivery"
+CHANNELS = (CHANNEL_TAKEOUT, CHANNEL_DELIVERY)
+
 MAIN_ROLES = {"main"}
 # 配餐必须是「有实物的」：薯条 / 薯饼 / 鸡块 / 派 / 香肠……
 # 饮料与甜品不计入配餐——否则一瓶 8.5 元的矿泉水就能顶一顿饭，「吃饱」检查形同虚设。
 # 饮料是单独询问的可选附加项：计入预算，但不构成饱腹结构。
 SIDE_ROLES = {"side"}
+
+# price 的两种语义
+PRICE_BASIS_FINAL = "final"  # price 已是 calculate-price 的实付总价（默认，最安全）
+PRICE_BASIS_MENU = "menu"    # price 是菜单价，需叠加 --estimate-fee
 
 
 def load_json(path: str) -> Dict[str, Any]:
@@ -83,10 +120,52 @@ def satisfaction(meal: Dict[str, Any], profile: Dict[str, Any]) -> float:
     return round(sum(scores) / len(scores), 3) if scores else 0.0
 
 
-def decide(payload: Dict[str, Any], budget: float, delivery_fee: float) -> Dict[str, Any]:
+def resolve_fee(payload: Dict[str, Any], estimate_fee: float) -> Tuple[str, float]:
+    """决定要不要叠加附加费。
+
+    只有 `price_basis == "menu"`（price 是菜单价）时才叠加；
+    否则一律返回 0，**从机制上杜绝「配送费算两遍」**。
+    """
+    basis = norm(payload.get("price_basis") or PRICE_BASIS_FINAL)
+    if basis == PRICE_BASIS_MENU:
+        return basis, round(float(estimate_fee), 2)
+    return basis, 0.0
+
+
+def collect_warnings(channel: str, basis: str, fee: float, payload: Dict[str, Any]) -> List[str]:
+    """收集「数据可能不自洽」的告警。不改变结论，只提醒。"""
+    warns: List[str] = []
+
+    if channel == CHANNEL_DELIVERY and basis == PRICE_BASIS_MENU and fee <= 0:
+        warns.append(
+            "外送 + price_basis=menu 但 estimate-fee=0：配送费与打包费未计入，实付价会偏低。"
+            "实测外送附加费为 配送 6.00 + 打包 1.90 = 7.90 元。"
+        )
+
+    src = payload.get("_source") or {}
+    raw_order_type = src.get("order_type")
+    if raw_order_type is not None:
+        try:
+            expected = 2 if channel == CHANNEL_DELIVERY else 1
+            if int(raw_order_type) != expected:
+                warns.append(
+                    "渠道与快照来源不一致：--channel=%s 但 _source.order_type=%s。"
+                    % (channel, raw_order_type)
+                )
+        except (TypeError, ValueError):
+            pass
+
+    return warns
+
+
+def decide(
+    payload: Dict[str, Any], budget: float, estimate_fee: float, channel: str
+) -> Dict[str, Any]:
     profile = payload.get("profile") or {}
     banned = profile.get("banned") or []
     candidates = payload.get("candidates") or []
+
+    basis, fee = resolve_fee(payload, estimate_fee)
 
     kept: List[Dict[str, Any]] = []
     dropped = {"banned": [], "structure": []}
@@ -102,7 +181,7 @@ def decide(payload: Dict[str, Any], budget: float, delivery_fee: float) -> Dict[
 
     scored: List[Dict[str, Any]] = []
     for meal in kept:
-        price = round(float(meal.get("price", 0.0)) + float(delivery_fee), 2)
+        price = round(float(meal.get("price", 0.0)) + fee, 2)
         sat = satisfaction(meal, profile)
         scored.append(
             {
@@ -117,39 +196,30 @@ def decide(payload: Dict[str, Any], budget: float, delivery_fee: float) -> Dict[
 
     scored.sort(key=lambda x: (-x["score"], x["actual_price"]))
 
-    in_budget = [s for s in scored if s["actual_price"] <= budget]
-    if in_budget:
-        return {
-            "status": "ok",
-            "pick": in_budget[0],
-            "alternatives": in_budget[1:3],
-            "dropped": dropped,
-            "budget": budget,
-            "delivery_fee": delivery_fee,
-        }
-    if scored:
-        closest = min(scored, key=lambda x: x["actual_price"])
-        return {
-            "status": "over_budget",
-            "pick": closest,
-            "alternatives": [],
-            "dropped": dropped,
-            "budget": budget,
-            "delivery_fee": delivery_fee,
-        }
-    return {
-        "status": "empty",
-        "pick": None,
-        "alternatives": [],
+    common = {
         "dropped": dropped,
         "budget": budget,
-        "delivery_fee": delivery_fee,
+        "channel": channel,
+        "price_basis": basis,
+        "estimate_fee": fee,
+        "warnings": collect_warnings(channel, basis, fee, payload),
     }
+
+    in_budget = [s for s in scored if s["actual_price"] <= budget]
+    if in_budget:
+        return dict(common, status="ok", pick=in_budget[0], alternatives=in_budget[1:3])
+    if scored:
+        closest = min(scored, key=lambda x: x["actual_price"])
+        return dict(common, status="over_budget", pick=closest, alternatives=[])
+    return dict(common, status="empty", pick=None, alternatives=[])
 
 
 def render(result: Dict[str, Any]) -> str:
     budget = result.get("budget", DEFAULT_BUDGET)
-    fee = result.get("delivery_fee", 0.0)
+    fee = result.get("estimate_fee", 0.0)
+    channel = result.get("channel", CHANNEL_TAKEOUT)
+    is_delivery = channel == CHANNEL_DELIVERY
+    how = "外送" if is_delivery else "自取"
     lines: List[str] = []
 
     if result["status"] == "empty":
@@ -169,6 +239,9 @@ def render(result: Dict[str, Any]) -> str:
             "最接近的是 %s，实付 %.2f 元，超了 %.2f 元。"
             % (pick["name"], pick["actual_price"], pick["over_budget"])
         )
+        if is_delivery:
+            lines.append("（外送附加费固定 %.2f 元：配送 + 打包，使得预算比自取更难满足）" % fee if fee else
+                         "（原因：外送附加费为配送 + 打包，使实付价高于同内容的自取价）")
         lines.append("要不要就按这个来？还是放宽预算？")
         return "\n".join(lines)
 
@@ -179,9 +252,9 @@ def render(result: Dict[str, Any]) -> str:
     if composed and composed != pick["name"]:
         lines.append("  构成：%s" % composed)
     if fee:
-        lines.append("  实付：%.2f 元（含配送费 %.2f，预算 %.2f）" % (pick["actual_price"], fee, budget))
+        lines.append("  实付：%.2f 元（含估算附加费 %.2f，预算 %.2f）" % (pick["actual_price"], fee, budget))
     else:
-        lines.append("  实付：%.2f 元（预算 %.2f，自取无配送费）" % (pick["actual_price"], budget))
+        lines.append("  实付：%.2f 元（%s，预算 %.2f）" % (pick["actual_price"], how, budget))
     lines.append("  满足度：%.1f / 5　性价比得分：%.4f" % (pick["satisfaction"], pick["score"]))
 
     alts = result.get("alternatives") or []
@@ -198,7 +271,24 @@ def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description="mcd-pick-one 决策引擎：只输出一个答案")
     parser.add_argument("--input", required=True, help="输入 JSON，需含 profile 与 candidates")
     parser.add_argument("--budget", type=float, default=DEFAULT_BUDGET, help="一餐预算上限（元），默认 25")
-    parser.add_argument("--delivery-fee", type=float, default=0.0, help="外送费（元）；自取填 0")
+    parser.add_argument(
+        "--channel",
+        choices=CHANNELS,
+        default=CHANNEL_TAKEOUT,
+        help="取餐渠道：takeout 到店自取（默认）/ delivery 麦乐送。仅影响标注与告警，不改变决策规则",
+    )
+    parser.add_argument(
+        "--estimate-fee",
+        type=float,
+        default=DEFAULT_ESTIMATE_FEE,
+        help="附加费估算值（元）。**仅当** price_basis=menu（price 是菜单价）时才生效，默认 0",
+    )
+    parser.add_argument(
+        "--price-basis",
+        choices=(PRICE_BASIS_FINAL, PRICE_BASIS_MENU),
+        default=None,
+        help="声明输入里 price 的语义：final=已是核价实付总价（默认，最安全）/ menu=菜单价，需叠加 --estimate-fee",
+    )
     parser.add_argument("--json", action="store_true", help="以 JSON 输出原始结果")
     return parser
 
@@ -214,16 +304,21 @@ def main(argv: List[str] | None = None) -> int:
         print("输入不是合法 JSON：%s" % exc, file=sys.stderr)
         return 2
 
+    if args.price_basis:
+        payload["price_basis"] = args.price_basis
+
     budget = float((payload.get("profile") or {}).get("budget", args.budget))
     if args.budget != DEFAULT_BUDGET:
         budget = args.budget
 
-    result = decide(payload, budget, args.delivery_fee)
+    result = decide(payload, budget, args.estimate_fee, args.channel)
 
     if args.json:
         print(json.dumps(result, ensure_ascii=False, indent=2))
     else:
         print(render(result))
+        for warn in result.get("warnings") or []:
+            print("  ⚠️  %s" % warn)
     return 0
 
 
