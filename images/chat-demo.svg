@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="386" viewBox="0 0 900 386" role="img" aria-label="mcd-pick-one 真实对话演示：一句话输入，一个答案输出">
+  <title>mcd-pick-one 真实对话演示</title>
+  <desc>2026-10-11 10:20 真实调用麦当劳 MCP 后，助手只给出一个答案：吉士蛋麦满分 + 脆薯饼，19.50 元。该门店当日 0 张可用券，按官方核价如实报价，不虚报省钱。</desc>
+  <defs>
+    <clipPath id="chatcard">
+      <rect x="0" y="0" width="900" height="386" rx="12" ry="12"/>
+    </clipPath>
+    <style>
+      .m { font-family: "JetBrains Mono", "Cascadia Mono", Consolas, "Microsoft YaHei", "PingFang SC", monospace; }
+    </style>
+  </defs>
+
+  <g clip-path="url(#chatcard)">
+    <rect x="0" y="0" width="900" height="386" fill="#0d1117"/>
+
+    <rect x="0" y="0" width="900" height="44" fill="#161b22"/>
+    <line x1="0" y1="44" x2="900" y2="44" stroke="#30363d" stroke-width="1"/>
+    <circle cx="26" cy="22" r="6" fill="#ff5f57"/>
+    <circle cx="46" cy="22" r="6" fill="#febc2e"/>
+    <circle cx="66" cy="22" r="6" fill="#28c840"/>
+    <text class="m" x="450" y="27" fill="#8b949e" font-size="13" text-anchor="middle">mcd-pick-one · 真实 MCP 调用 · 2026-10-11 10:20</text>
+
+    <rect x="476" y="64" width="398" height="46" rx="14" fill="#1f6feb"/>
+    <text class="m" x="854" y="92" fill="#ffffff" font-size="14" text-anchor="end">中午吃啥？懒得想，也不想出门。</text>
+
+    <rect x="26" y="128" width="616" height="200" rx="14" fill="#161b22" stroke="#30363d"/>
+    <text class="m" x="50" y="160" fill="#8b949e" font-size="12">麦当劳天津站后广场餐厅 · 外带 · 最近 323 m</text>
+    <text class="m" x="50" y="194" fill="#ffffff" font-size="18" font-weight="700">吉士蛋麦满分 ＋ 脆薯饼</text>
+    <text class="m" x="50" y="236" fill="#7ee787" font-size="26" font-weight="700">19.50</text>
+    <text class="m" x="166" y="235" fill="#8b949e" font-size="14">元 · 能吃饱 · 主食 + 配餐</text>
+    <line x1="50" y1="264" x2="618" y2="264" stroke="#30363d" stroke-width="1"/>
+    <text class="m" x="50" y="290" fill="#f0b429" font-size="12">本店今日 0 张可用券</text>
+    <text class="m" x="50" y="310" fill="#6e7681" font-size="12">券包里的 5 张券，这家门店 + 到店自取渠道一张都用不上</text>
+
+    <text class="m" x="26" y="352" fill="#6e7681" font-size="12">定价来自 calculate-price 官方核价，非估算　·　没有候选列表，没有第二方案</text>
+  </g>
+
+  <rect x="0.5" y="0.5" width="899" height="385" rx="12" ry="12" fill="none" stroke="#30363d" stroke-width="1"/>
+</svg>
